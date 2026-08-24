@@ -99,7 +99,7 @@
         background: #136b33;
         color: #fff;
         width: 100%;
-        margin-top: 8px;
+        margin-top: 10px;
       }
       .btn-accent {
         background: #ff9800;
@@ -269,7 +269,7 @@
       <div class="card" style="background: #fff8e1; border: 1px solid #ffe082">
         <h2 style="color: #b78103">⚡ Aumento Automático (%)</h2>
         <p style="font-size: 12px; color: #665; margin-bottom: 6px">
-          Aplica sobre las categorías de la actividad seleccionada:
+          Aplica sobre los básicos y jornales de la actividad seleccionada:
         </p>
         <div class="row">
           <input
@@ -291,11 +291,20 @@
         <input
           type="text"
           id="in-cat"
-          placeholder="Ej: Encargado, Peón General, Lavador..."
+          placeholder="Ej: Encargado, Peón General, Tractorista..."
         />
 
-        <label>Básico Inicial ($)</label>
-        <input type="number" id="in-sueldo" placeholder="Ej: 850000" />
+        <div class="row">
+          <div style="flex: 1">
+            <label>Básico Mensual ($)</label>
+            <input type="number" id="in-sueldo" placeholder="Ej: 850000" />
+          </div>
+          <div style="flex: 1">
+            <label>Jornal ($)</label>
+            <input type="number" id="in-jornal" placeholder="Ej: 37500" />
+          </div>
+        </div>
+
         <button class="btn-main" onclick="agregarCategoria()">
           + Guardar Categoría
         </button>
@@ -326,6 +335,7 @@
                 <tr>
                   <th>Categoría</th>
                   <th style="text-align: right">Básico Mensual</th>
+                  <th style="text-align: right">Jornal</th>
                 </tr>
               </thead>
               <tbody id="render-tbody"></tbody>
@@ -366,6 +376,14 @@
       let logoGuardado = localStorage.getItem("uatre_logo") || "";
 
       function formatearMoneda(valor) {
+        if (
+          valor === undefined ||
+          valor === null ||
+          valor === "" ||
+          isNaN(valor)
+        ) {
+          return "-";
+        }
         return (
           "$ " +
           Number(valor).toLocaleString("es-AR", {
@@ -434,9 +452,12 @@
       function agregarCategoria() {
         const cat = document.getElementById("in-cat").value.trim();
         const sueldo = parseFloat(document.getElementById("in-sueldo").value);
+        const jornal = parseFloat(document.getElementById("in-jornal").value);
 
-        if (!cat || isNaN(sueldo)) {
-          alert("Ingresá el nombre de la categoría y el sueldo.");
+        if (!cat || (isNaN(sueldo) && isNaN(jornal))) {
+          alert(
+            "Ingresá el nombre de la categoría y al menos un básico o jornal.",
+          );
           return;
         }
 
@@ -444,9 +465,15 @@
           bdActividades[actividadActual] = [];
         }
 
-        bdActividades[actividadActual].push({ nombre: cat, sueldo: sueldo });
+        bdActividades[actividadActual].push({
+          nombre: cat,
+          sueldo: isNaN(sueldo) ? null : sueldo,
+          jornal: isNaN(jornal) ? null : jornal,
+        });
+
         document.getElementById("in-cat").value = "";
         document.getElementById("in-sueldo").value = "";
+        document.getElementById("in-jornal").value = "";
         guardarYRender();
       }
 
@@ -471,7 +498,12 @@
         if (confirm(`¿Aplicar ${porc}% de aumento a "${actividadActual}"?`)) {
           bdActividades[actividadActual] = cats.map((item) => ({
             nombre: item.nombre,
-            sueldo: Math.round(item.sueldo * (1 + porc / 100) * 100) / 100,
+            sueldo: item.sueldo
+              ? Math.round(item.sueldo * (1 + porc / 100) * 100) / 100
+              : null,
+            jornal: item.jornal
+              ? Math.round(item.jornal * (1 + porc / 100) * 100) / 100
+              : null,
           }));
           document.getElementById("in-porcentaje").value = "";
           guardarYRender();
@@ -504,12 +536,13 @@
             const item = document.createElement("div");
             item.className = "cat-item";
             item.innerHTML = `
-          <div>
-            <strong>${c.nombre}</strong><br>
-            <span style="color:#136b33; font-size:13px;">${formatearMoneda(c.sueldo)}</span>
-          </div>
-          <button class="btn-danger" onclick="eliminarCategoria(${idx})">Eliminar</button>
-        `;
+              <div>
+                <strong>${c.nombre}</strong><br>
+                <span style="color:#136b33; font-size:13px;">Mensual: ${formatearMoneda(c.sueldo)}</span> | 
+                <span style="color:#0d47a1; font-size:13px;">Jornal: ${formatearMoneda(c.jornal)}</span>
+              </div>
+              <button class="btn-danger" onclick="eliminarCategoria(${idx})">Eliminar</button>
+            `;
             lista.appendChild(item);
           });
         }
@@ -518,14 +551,15 @@
         tbody.innerHTML = "";
         if (cats.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="2" style="text-align:center; color:#999; padding:16px;">Cargá categorías arriba para armar la tabla</td></tr>';
+            '<tr><td colspan="3" style="text-align:center; color:#999; padding:16px;">Cargá categorías arriba para armar la tabla</td></tr>';
         } else {
           cats.forEach((c) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-          <td><strong>${c.nombre}</strong></td>
-          <td class="monto">${formatearMoneda(c.sueldo)}</td>
-        `;
+              <td><strong>${c.nombre}</strong></td>
+              <td class="monto">${formatearMoneda(c.sueldo)}</td>
+              <td class="monto">${formatearMoneda(c.jornal)}</td>
+            `;
             tbody.appendChild(tr);
           });
         }
