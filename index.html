@@ -39,7 +39,7 @@
         color: #333;
       }
       .container {
-        max-width: 800px;
+        max-width: 850px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
@@ -141,7 +141,7 @@
 
       #render-area {
         background: #ffffff;
-        min-width: 580px;
+        min-width: 620px;
         padding: 24px;
         border-radius: 12px;
         border: 2px solid #136b33;
@@ -196,14 +196,14 @@
         background: #136b33;
         color: #ffffff;
         text-align: left;
-        padding: 8px 12px;
-        font-size: 13px;
+        padding: 8px 10px;
+        font-size: 12px;
         text-transform: uppercase;
       }
       .table-render td {
-        padding: 9px 12px;
+        padding: 9px 10px;
         border-bottom: 1px solid #ddd;
-        font-size: 13px;
+        font-size: 12px;
         color: #222;
       }
       .table-render td.monto {
@@ -269,7 +269,7 @@
       <div class="card" style="background: #fff8e1; border: 1px solid #ffe082">
         <h2 style="color: #b78103">⚡ Aumento Automático (%)</h2>
         <p style="font-size: 12px; color: #665; margin-bottom: 6px">
-          Aplica sobre los básicos y jornales de la actividad seleccionada:
+          Aplica sobre básicos, jornales y rendita de la actividad seleccionada:
         </p>
         <div class="row">
           <input
@@ -286,12 +286,12 @@
 
       <!-- Carga de Categorías -->
       <div class="card">
-        <h2>➕ Cargar Categoría en esta Actividad</h2>
-        <label>Nombre de la Categoría</label>
+        <h2>➕ Cargar Categoría / Tarea</h2>
+        <label>Nombre de la Categoría / Tarea</label>
         <input
           type="text"
           id="in-cat"
-          placeholder="Ej: Encargado, Peón General, Tractorista..."
+          placeholder="Ej: Peón General, Cosechero, Tractorista..."
         />
 
         <div class="row">
@@ -303,6 +303,10 @@
             <label>Jornal ($)</label>
             <input type="number" id="in-jornal" placeholder="Ej: 37500" />
           </div>
+          <div style="flex: 1">
+            <label>Por Rendita / Destajo ($)</label>
+            <input type="number" id="in-rendita" placeholder="Ej: 1500" />
+          </div>
         </div>
 
         <button class="btn-main" onclick="agregarCategoria()">
@@ -310,7 +314,7 @@
         </button>
       </div>
 
-      <!-- Categorías de la Actividad -->
+      <!-- Categorías Guardadas -->
       <div class="card">
         <h2>📂 Categorías Guardadas</h2>
         <div id="lista-categorias"></div>
@@ -336,6 +340,7 @@
                   <th>Categoría</th>
                   <th style="text-align: right">Básico Mensual</th>
                   <th style="text-align: right">Jornal</th>
+                  <th style="text-align: right">Por Rendita</th>
                 </tr>
               </thead>
               <tbody id="render-tbody"></tbody>
@@ -355,24 +360,57 @@
     </div>
 
     <script>
-      // Estructura fija de fábrica: si se borran los datos locales, siempre arranca con esto
       const actividadesPorDefecto = {
         "Régimen General de Trabajo Agrario": [
-          { nombre: "Peón General", sueldo: 850000, jornal: 37500 },
-          { nombre: "Tractorista / Maquinista", sueldo: 940000, jornal: 41500 },
-          { nombre: "Encargado", sueldo: 1050000, jornal: 46200 },
+          {
+            nombre: "Peón General",
+            sueldo: 850000,
+            jornal: 37500,
+            rendita: null,
+          },
+          {
+            nombre: "Tractorista / Maquinista",
+            sueldo: 940000,
+            jornal: 41500,
+            rendita: null,
+          },
+          {
+            nombre: "Encargado",
+            sueldo: 1050000,
+            jornal: 46200,
+            rendita: null,
+          },
         ],
         "Viveros y Floricultura": [
-          { nombre: "Peón Común", sueldo: 820000, jornal: 36000 },
-          { nombre: "Especializado", sueldo: 890000, jornal: 39500 },
+          {
+            nombre: "Peón Común",
+            sueldo: 820000,
+            jornal: 36000,
+            rendita: null,
+          },
+          {
+            nombre: "Especializado",
+            sueldo: 890000,
+            jornal: 39500,
+            rendita: null,
+          },
         ],
         "Lavadero de Verduras": [
-          { nombre: "Peón de Lavadero", sueldo: 830000, jornal: 36800 },
-          { nombre: "Clasificador", sueldo: 870000, jornal: 38500 },
+          {
+            nombre: "Peón de Lavadero",
+            sueldo: 830000,
+            jornal: 36800,
+            rendita: null,
+          },
+          {
+            nombre: "Clasificador",
+            sueldo: 870000,
+            jornal: 38500,
+            rendita: null,
+          },
         ],
       };
 
-      // Carga desde localStorage o toma el respaldo de fábrica
       let bdActividades;
       try {
         const datosCrudos = localStorage.getItem("uatre_bd_actividades");
@@ -383,14 +421,26 @@
         bdActividades = JSON.parse(JSON.stringify(actividadesPorDefecto));
       }
 
-      // Asegura que las actividades base siempre existan
-      Object.keys(actividadesPorDefecto).forEach((act) => {
-        if (!bdActividades[act] || bdActividades[act].length === 0) {
-          bdActividades[act] = JSON.parse(
-            JSON.stringify(actividadesPorDefecto[act]),
-          );
+      Object.keys(bdActividades).forEach((act) => {
+        if (Array.isArray(bdActividades[act])) {
+          bdActividades[act] = bdActividades[act].map((item) => {
+            if (typeof item === "object" && item !== null) {
+              return {
+                nombre: item.nombre || "Categoría",
+                sueldo: item.sueldo !== undefined ? item.sueldo : null,
+                jornal: item.jornal !== undefined ? item.jornal : null,
+                rendita: item.rendita !== undefined ? item.rendita : null,
+              };
+            }
+            return item;
+          });
         }
       });
+
+      if (!bdActividades["Lavadero de Verduras"]) {
+        bdActividades["Lavadero de Verduras"] = [];
+      }
+      delete bdActividades["Horticultura y Verduras"];
 
       let actividadActual =
         localStorage.getItem("uatre_actividad_actual") ||
@@ -475,10 +525,11 @@
         const cat = document.getElementById("in-cat").value.trim();
         const sueldo = parseFloat(document.getElementById("in-sueldo").value);
         const jornal = parseFloat(document.getElementById("in-jornal").value);
+        const rendita = parseFloat(document.getElementById("in-rendita").value);
 
-        if (!cat || (isNaN(sueldo) && isNaN(jornal))) {
+        if (!cat || (isNaN(sueldo) && isNaN(jornal) && isNaN(rendita))) {
           alert(
-            "Ingresá el nombre de la categoría y al menos un básico o jornal.",
+            "Ingresá el nombre y al menos un valor (Básico, Jornal o Por Rendita).",
           );
           return;
         }
@@ -491,11 +542,13 @@
           nombre: cat,
           sueldo: isNaN(sueldo) ? null : sueldo,
           jornal: isNaN(jornal) ? null : jornal,
+          rendita: isNaN(rendita) ? null : rendita,
         });
 
         document.getElementById("in-cat").value = "";
         document.getElementById("in-sueldo").value = "";
         document.getElementById("in-jornal").value = "";
+        document.getElementById("in-rendita").value = "";
         guardarYRender();
       }
 
@@ -525,6 +578,9 @@
               : null,
             jornal: item.jornal
               ? Math.round(item.jornal * (1 + porc / 100) * 100) / 100
+              : null,
+            rendita: item.rendita
+              ? Math.round(item.rendita * (1 + porc / 100) * 100) / 100
               : null,
           }));
           document.getElementById("in-porcentaje").value = "";
@@ -560,8 +616,9 @@
             item.innerHTML = `
               <div>
                 <strong>${c.nombre}</strong><br>
-                <span style="color:#136b33; font-size:13px;">Mensual: ${formatearMoneda(c.sueldo)}</span> | 
-                <span style="color:#0d47a1; font-size:13px;">Jornal: ${formatearMoneda(c.jornal)}</span>
+                <span style="color:#136b33; font-size:12px;">Mensual: ${formatearMoneda(c.sueldo)}</span> | 
+                <span style="color:#0d47a1; font-size:12px;">Jornal: ${formatearMoneda(c.jornal)}</span> | 
+                <span style="color:#b78103; font-size:12px;">Rendita: ${formatearMoneda(c.rendita)}</span>
               </div>
               <button class="btn-danger" onclick="eliminarCategoria(${idx})">Eliminar</button>
             `;
@@ -573,7 +630,7 @@
         tbody.innerHTML = "";
         if (cats.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="3" style="text-align:center; color:#999; padding:16px;">Cargá categorías arriba para armar la tabla</td></tr>';
+            '<tr><td colspan="4" style="text-align:center; color:#999; padding:16px;">Cargá categorías arriba para armar la tabla</td></tr>';
         } else {
           cats.forEach((c) => {
             const tr = document.createElement("tr");
@@ -581,6 +638,7 @@
               <td><strong>${c.nombre}</strong></td>
               <td class="monto">${formatearMoneda(c.sueldo)}</td>
               <td class="monto">${formatearMoneda(c.jornal)}</td>
+              <td class="monto">${formatearMoneda(c.rendita)}</td>
             `;
             tbody.appendChild(tr);
           });
