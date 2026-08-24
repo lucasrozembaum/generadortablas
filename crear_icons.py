@@ -1,15 +1,28 @@
-import base64
+import zlib
+import struct
 
-# PNG 192x192 oficial verde UATRE con símbolo %
-icon_192_b64 = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABTSURBVHhe7cExAQAAAMKg9U9tCF8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIsBc2QAAUr4Y/IAAAAASUVORK5CYII="
+def generar_png(width, height, r, g, b):
+    raw_data = bytearray()
+    for _ in range(height):
+        raw_data.append(0)  # Filtro PNG: None
+        raw_data.extend([r, g, b] * width)
+    
+    comprimido = zlib.compress(bytes(raw_data))
+    
+    def bloque(tipo, datos):
+        return struct.pack('>I', len(datos)) + tipo + datos + struct.pack('>I', zlib.crc32(tipo + datos) & 0xffffffff)
+    
+    png = b'\x89PNG\r\n\x1a\n'
+    png += bloque(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0))
+    png += bloque(b'IDAT', comprimido)
+    png += bloque(b'IEND', b'')
+    return png
 
-# PNG 512x512 oficial verde UATRE con símbolo %
-icon_512_b64 = "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB1SURBVHhe7cEBDQAAAMKg909tDwcUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4M0AEtwAAUtjPzkAAAAASUVORK5CYII="
-
+# Verde oficial (#136b33)
 with open("icon-192.png", "wb") as f:
-    f.write(base64.b64decode(icon_192_b64))
+    f.write(generar_png(192, 192, 19, 107, 51))
 
 with open("icon-512.png", "wb") as f:
-    f.write(base64.b64decode(icon_512_b64))
+    f.write(generar_png(512, 512, 19, 107, 51))
 
-print("Iconos generados correctamente.")
+print("Imagenes PNG oficiales generadas con exito.")
