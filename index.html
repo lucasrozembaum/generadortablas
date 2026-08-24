@@ -269,7 +269,7 @@
       <div class="card" style="background: #fff8e1; border: 1px solid #ffe082">
         <h2 style="color: #b78103">⚡ Aumento Automático (%)</h2>
         <p style="font-size: 12px; color: #665; margin-bottom: 6px">
-          Aplica sobre básicos, jornales y rendita de la actividad seleccionada:
+          Aplica sobre básicos, jornales y destajo de la actividad seleccionada:
         </p>
         <div class="row">
           <input
@@ -304,8 +304,8 @@
             <input type="number" id="in-jornal" placeholder="Ej: 37500" />
           </div>
           <div style="flex: 1">
-            <label>Por Rendita ($)</label>
-            <input type="number" id="in-rendita" placeholder="Ej: 1500" />
+            <label>Destajo ($)</label>
+            <input type="number" id="in-destajo" placeholder="Ej: 1500" />
           </div>
         </div>
 
@@ -340,7 +340,7 @@
                   <th>Categoría</th>
                   <th style="text-align: right">Básico Mensual</th>
                   <th style="text-align: right">Jornal</th>
-                  <th style="text-align: right">Por Rendita</th>
+                  <th style="text-align: right">Destajo</th>
                 </tr>
               </thead>
               <tbody id="render-tbody"></tbody>
@@ -376,7 +376,7 @@
         bdActividades = actividadesPorDefecto;
       }
 
-      // Migración automática para asegurar la columna rendita sin romper datos viejos
+      // Migración automática compatible con campos anteriores
       Object.keys(bdActividades).forEach((act) => {
         if (Array.isArray(bdActividades[act])) {
           bdActividades[act] = bdActividades[act].map((item) => {
@@ -385,7 +385,12 @@
                 nombre: item.nombre || "Categoría",
                 sueldo: item.sueldo !== undefined ? item.sueldo : null,
                 jornal: item.jornal !== undefined ? item.jornal : null,
-                rendita: item.rendita !== undefined ? item.rendita : null,
+                destajo:
+                  item.destajo !== undefined
+                    ? item.destajo
+                    : item.rendita !== undefined
+                      ? item.rendita
+                      : null,
               };
             }
             return item;
@@ -481,11 +486,11 @@
         const cat = document.getElementById("in-cat").value.trim();
         const sueldo = parseFloat(document.getElementById("in-sueldo").value);
         const jornal = parseFloat(document.getElementById("in-jornal").value);
-        const rendita = parseFloat(document.getElementById("in-rendita").value);
+        const destajo = parseFloat(document.getElementById("in-destajo").value);
 
-        if (!cat || (isNaN(sueldo) && isNaN(jornal) && isNaN(rendita))) {
+        if (!cat || (isNaN(sueldo) && isNaN(jornal) && isNaN(destajo))) {
           alert(
-            "Ingresá el nombre y al menos un valor (Básico, Jornal o Por Rendita).",
+            "Ingresá el nombre y al menos un valor (Básico, Jornal o Destajo).",
           );
           return;
         }
@@ -498,13 +503,13 @@
           nombre: cat,
           sueldo: isNaN(sueldo) ? null : sueldo,
           jornal: isNaN(jornal) ? null : jornal,
-          rendita: isNaN(rendita) ? null : rendita,
+          destajo: isNaN(destajo) ? null : destajo,
         });
 
         document.getElementById("in-cat").value = "";
         document.getElementById("in-sueldo").value = "";
         document.getElementById("in-jornal").value = "";
-        document.getElementById("in-rendita").value = "";
+        document.getElementById("in-destajo").value = "";
         guardarYRender();
       }
 
@@ -535,8 +540,8 @@
             jornal: item.jornal
               ? Math.round(item.jornal * (1 + porc / 100) * 100) / 100
               : null,
-            rendita: item.rendita
-              ? Math.round(item.rendita * (1 + porc / 100) * 100) / 100
+            destajo: item.destajo
+              ? Math.round(item.destajo * (1 + porc / 100) * 100) / 100
               : null,
           }));
           document.getElementById("in-porcentaje").value = "";
@@ -574,7 +579,7 @@
                 <strong>${c.nombre}</strong><br>
                 <span style="color:#136b33; font-size:12px;">Mensual: ${formatearMoneda(c.sueldo)}</span> | 
                 <span style="color:#0d47a1; font-size:12px;">Jornal: ${formatearMoneda(c.jornal)}</span> | 
-                <span style="color:#b78103; font-size:12px;">Rendita: ${formatearMoneda(c.rendita)}</span>
+                <span style="color:#b78103; font-size:12px;">Destajo: ${formatearMoneda(c.destajo)}</span>
               </div>
               <button class="btn-danger" onclick="eliminarCategoria(${idx})">Eliminar</button>
             `;
@@ -594,7 +599,7 @@
               <td><strong>${c.nombre}</strong></td>
               <td class="monto">${formatearMoneda(c.sueldo)}</td>
               <td class="monto">${formatearMoneda(c.jornal)}</td>
-              <td class="monto">${formatearMoneda(c.rendita)}</td>
+              <td class="monto">${formatearMoneda(c.destajo)}</td>
             `;
             tbody.appendChild(tr);
           });
