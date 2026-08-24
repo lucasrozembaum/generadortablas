@@ -304,7 +304,7 @@
             <input type="number" id="in-jornal" placeholder="Ej: 37500" />
           </div>
           <div style="flex: 1">
-            <label>Por Rendita / Destajo ($)</label>
+            <label>Por Rendita ($)</label>
             <input type="number" id="in-rendita" placeholder="Ej: 1500" />
           </div>
         </div>
@@ -361,54 +361,9 @@
 
     <script>
       const actividadesPorDefecto = {
-        "Régimen General de Trabajo Agrario": [
-          {
-            nombre: "Peón General",
-            sueldo: 850000,
-            jornal: 37500,
-            rendita: null,
-          },
-          {
-            nombre: "Tractorista / Maquinista",
-            sueldo: 940000,
-            jornal: 41500,
-            rendita: null,
-          },
-          {
-            nombre: "Encargado",
-            sueldo: 1050000,
-            jornal: 46200,
-            rendita: null,
-          },
-        ],
-        "Viveros y Floricultura": [
-          {
-            nombre: "Peón Común",
-            sueldo: 820000,
-            jornal: 36000,
-            rendita: null,
-          },
-          {
-            nombre: "Especializado",
-            sueldo: 890000,
-            jornal: 39500,
-            rendita: null,
-          },
-        ],
-        "Lavadero de Verduras": [
-          {
-            nombre: "Peón de Lavadero",
-            sueldo: 830000,
-            jornal: 36800,
-            rendita: null,
-          },
-          {
-            nombre: "Clasificador",
-            sueldo: 870000,
-            jornal: 38500,
-            rendita: null,
-          },
-        ],
+        "Régimen General de Trabajo Agrario": [],
+        "Viveros y Floricultura": [],
+        "Lavadero de Verduras": [],
       };
 
       let bdActividades;
@@ -416,11 +371,12 @@
         const datosCrudos = localStorage.getItem("uatre_bd_actividades");
         bdActividades = datosCrudos
           ? JSON.parse(datosCrudos)
-          : JSON.parse(JSON.stringify(actividadesPorDefecto));
+          : actividadesPorDefecto;
       } catch (e) {
-        bdActividades = JSON.parse(JSON.stringify(actividadesPorDefecto));
+        bdActividades = actividadesPorDefecto;
       }
 
+      // Migración automática para asegurar la columna rendita sin romper datos viejos
       Object.keys(bdActividades).forEach((act) => {
         if (Array.isArray(bdActividades[act])) {
           bdActividades[act] = bdActividades[act].map((item) => {
