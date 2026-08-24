@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Escalas UATRE Córdoba</title>
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22%23136b33%22/><rect x=%2256%22 y=%2256%22 width=%22400%22 height=%22400%22 rx=%2240%22 fill=%22%23ffffff%22/><path d=%22M 56 96 C 56 73.9 73.9 56 96 56 L 416 56 C 438.1 56 456 73.9 456 96 L 456 140 L 56 140 Z%22 fill=%22%230e5227%22/><circle cx=%22380%22 cy=%22405%22 r=%2235%22 fill=%22%23ff9800%22/><text x=%22380%22 y=%22417%22 font-family=%22Arial%22 font-size=%2234%22 font-weight=%22bold%22 fill=%22%23ffffff%22 text-anchor=%22middle%22>%25</text></svg>"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#136b33" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch(() => {});
+        });
+      }
+    </script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #eef2f5;
+        padding: 14px;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .card {
+        background: #fff;
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      }
+      h2 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #136b33;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #444;
+        text-transform: uppercase;
+        margin-top: 8px;
+        display: block;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 4px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        background: #fff;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 6px;
+      }
+
+      button {
+        cursor: pointer;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .btn-main {
+        background: #136b33;
+        color: #fff;
+        width: 100%;
+        margin-top: 8px;
+      }
+      .btn-accent {
+        background: #ff9800;
+        color: #fff;
+        white-space: nowrap;
+      }
+      .btn-secondary {
+        background: #e3f2fd;
+        color: #0d47a1;
+        white-space: nowrap;
+      }
+      .btn-danger {
+        background: #d32f2f;
+        color: #fff;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .btn-download {
+        background: #0d47a1;
+        color: #fff;
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        margin-top: 12px;
+      }
+
+      .cat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .preview-wrapper {
+        overflow-x: auto;
+        padding: 6px 0;
+      }
+
+      #render-area {
+        background: #ffffff;
+        min-width: 580px;
+        padding: 24px;
+        border-radius: 12px;
+        border: 2px solid #136b33;
+        margin: 0 auto;
+      }
+
+      .render-header-top {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        border-bottom: 3px solid #136b33;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+      }
+      #render-logo {
+        max-height: 65px;
+        max-width: 90px;
+        object-fit: contain;
+        display: none;
+      }
+      .render-header-text {
+        text-align: center;
+      }
+      .render-header-text .institucional {
+        font-size: 20px;
+        font-weight: 900;
+        color: #136b33;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .render-header-text .titulo-actividad {
+        font-size: 16px;
+        color: #1b5e20;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+      .render-header-text .periodo {
+        font-size: 13px;
+        color: #555;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+
+      .table-render {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      .table-render th {
+        background: #136b33;
+        color: #ffffff;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+      .table-render td {
+        padding: 9px 12px;
+        border-bottom: 1px solid #ddd;
+        font-size: 13px;
+        color: #222;
+      }
+      .table-render td.monto {
+        text-align: right;
+        font-weight: 700;
+        color: #136b33;
+      }
+      .table-render tr:nth-child(even) {
+        background-color: #f9fbf9;
+      }
+
+      .render-footer {
+        margin-top: 18px;
+        border-top: 2px solid #136b33;
+        padding-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #136b33;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Selección y Gestión de Actividades -->
+      <div class="card">
+        <h2>🌾 Actividad / Rama Laboral</h2>
+        <label>Seleccionar Actividad Activa</label>
+        <select id="sel-actividad" onchange="cambiarActividad()"></select>
+
+        <label>Crear Nueva Actividad</label>
+        <div class="row">
+          <input
+            type="text"
+            id="in-nueva-actividad"
+            placeholder="Ej: Avícola, Cerealero..."
+          />
+          <button class="btn-secondary" onclick="crearActividad()">
+            + Crear
+          </button>
+        </div>
+
+        <label>Mes / Período de Vigencia</label>
+        <input
+          type="text"
+          id="in-periodo"
+          value="Agosto 2026"
+          oninput="guardarYRender()"
+        />
+
+        <label>Cargar Logo Oficial (Se guarda automáticamente)</label>
+        <input
+          type="file"
+          id="in-logo"
+          accept="image/*"
+          onchange="cargarLogo(event)"
+        />
+      </div>
+
+      <!-- Aumento por Porcentaje -->
+      <div class="card" style="background: #fff8e1; border: 1px solid #ffe082">
+        <h2 style="color: #b78103">⚡ Aumento Automático (%)</h2>
+        <p style="font-size: 12px; color: #665; margin-bottom: 6px">
+          Aplica sobre las categorías de la actividad seleccionada:
+        </p>
+        <div class="row">
+          <input
+            type="number"
+            id="in-porcentaje"
+            placeholder="Ej: 5.5"
+            step="0.1"
+          />
+          <button class="btn-accent" onclick="aplicarAumento()">
+            Calcular Aumento
+          </button>
+        </div>
+      </div>
+
+      <!-- Carga de Categorías -->
+      <div class="card">
+        <h2>➕ Cargar Categoría en esta Actividad</h2>
+        <label>Nombre de la Categoría</label>
+        <input
+          type="text"
+          id="in-cat"
+          placeholder="Ej: Encargado, Peón General, Lavador..."
+        />
+
+        <label>Básico Inicial ($)</label>
+        <input type="number" id="in-sueldo" placeholder="Ej: 850000" />
+        <button class="btn-main" onclick="agregarCategoria()">
+          + Guardar Categoría
+        </button>
+      </div>
+
+      <!-- Categorías de la Actividad -->
+      <div class="card">
+        <h2>📂 Categorías Guardadas</h2>
+        <div id="lista-categorias"></div>
+      </div>
+
+      <!-- Vista Previa y Descarga -->
+      <div class="card">
+        <h2>🖼️ Vista Previa</h2>
+        <div class="preview-wrapper">
+          <div id="render-area">
+            <div class="render-header-top">
+              <img id="render-logo" alt="Logo" />
+              <div class="render-header-text">
+                <div class="institucional">UATRE Delegación Córdoba</div>
+                <div class="titulo-actividad" id="out-actividad"></div>
+                <div class="periodo" id="out-periodo"></div>
+              </div>
+            </div>
+
+            <table class="table-render">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th style="text-align: right">Básico Mensual</th>
+                </tr>
+              </thead>
+              <tbody id="render-tbody"></tbody>
+            </table>
+
+            <div class="render-footer">
+              <span>UATRE Delegación Córdoba</span>
+              <span>#CórdobaNoPara</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-download" onclick="descargarImagen()">
+          📸 Descargar Imagen (PNG)
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const actividadesPorDefecto = {
+        "Régimen General de Trabajo Agrario": [],
+        "Viveros y Floricultura": [],
+        "Lavadero de Verduras": [],
+      };
+
+      let bdActividades =
+        JSON.parse(localStorage.getItem("uatre_bd_actividades")) ||
+        actividadesPorDefecto;
+
+      if (!bdActividades["Lavadero de Verduras"]) {
+        bdActividades["Lavadero de Verduras"] = [];
+      }
+      delete bdActividades["Horticultura y Verduras"];
+
+      let actividadActual =
+        localStorage.getItem("uatre_actividad_actual") ||
+        Object.keys(bdActividades)[0];
+      let logoGuardado = localStorage.getItem("uatre_logo") || "";
+
+      function formatearMoneda(valor) {
+        return (
+          "$ " +
+          Number(valor).toLocaleString("es-AR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+
+      function poblarSelectActividades() {
+        const select = document.getElementById("sel-actividad");
+        select.innerHTML = "";
+        Object.keys(bdActividades).forEach((act) => {
+          const opt = document.createElement("option");
+          opt.value = act;
+          opt.innerText = act;
+          if (act === actividadActual) opt.selected = true;
+          select.appendChild(opt);
+        });
+      }
+
+      function crearActividad() {
+        const nueva = document
+          .getElementById("in-nueva-actividad")
+          .value.trim();
+        if (!nueva) return;
+        if (!bdActividades[nueva]) {
+          bdActividades[nueva] = [];
+          actividadActual = nueva;
+          document.getElementById("in-nueva-actividad").value = "";
+          poblarSelectActividades();
+          guardarYRender();
+        } else {
+          alert("Esa actividad ya existe.");
+        }
+      }
+
+      function cambiarActividad() {
+        actividadActual = document.getElementById("sel-actividad").value;
+        guardarYRender();
+      }
+
+      function cargarLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            logoGuardado = e.target.result;
+            localStorage.setItem("uatre_logo", logoGuardado);
+            mostrarLogo();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function mostrarLogo() {
+        const imgElement = document.getElementById("render-logo");
+        if (logoGuardado) {
+          imgElement.src = logoGuardado;
+          imgElement.style.display = "block";
+        } else {
+          imgElement.style.display = "none";
+        }
+      }
+
+      function agregarCategoria() {
+        const cat = document.getElementById("in-cat").value.trim();
+        const sueldo = parseFloat(document.getElementById("in-sueldo").value);
+
+        if (!cat || isNaN(sueldo)) {
+          alert("Ingresá el nombre de la categoría y el sueldo.");
+          return;
+        }
+
+        if (!bdActividades[actividadActual]) {
+          bdActividades[actividadActual] = [];
+        }
+
+        bdActividades[actividadActual].push({ nombre: cat, sueldo: sueldo });
+        document.getElementById("in-cat").value = "";
+        document.getElementById("in-sueldo").value = "";
+        guardarYRender();
+      }
+
+      function eliminarCategoria(index) {
+        bdActividades[actividadActual].splice(index, 1);
+        guardarYRender();
+      }
+
+      function aplicarAumento() {
+        const porc = parseFloat(document.getElementById("in-porcentaje").value);
+        if (isNaN(porc) || porc === 0) {
+          alert("Ingresá un porcentaje válido.");
+          return;
+        }
+
+        const cats = bdActividades[actividadActual] || [];
+        if (cats.length === 0) {
+          alert("No hay categorías cargadas en esta actividad.");
+          return;
+        }
+
+        if (confirm(`¿Aplicar ${porc}% de aumento a "${actividadActual}"?`)) {
+          bdActividades[actividadActual] = cats.map((item) => ({
+            nombre: item.nombre,
+            sueldo: Math.round(item.sueldo * (1 + porc / 100) * 100) / 100,
+          }));
+          document.getElementById("in-porcentaje").value = "";
+          guardarYRender();
+        }
+      }
+
+      function guardarYRender() {
+        localStorage.setItem(
+          "uatre_bd_actividades",
+          JSON.stringify(bdActividades),
+        );
+        localStorage.setItem("uatre_actividad_actual", actividadActual);
+        localStorage.setItem(
+          "uatre_periodo",
+          document.getElementById("in-periodo").value,
+        );
+
+        document.getElementById("out-actividad").innerText = actividadActual;
+        document.getElementById("out-periodo").innerText =
+          "Vigencia: " + document.getElementById("in-periodo").value;
+
+        const cats = bdActividades[actividadActual] || [];
+
+        const lista = document.getElementById("lista-categorias");
+        lista.innerHTML = "";
+        if (cats.length === 0) {
+          lista.innerHTML = `<p style="font-size:13px; color:#888;">No hay categorías cargadas para ${actividadActual}.</p>`;
+        } else {
+          cats.forEach((c, idx) => {
+            const item = document.createElement("div");
+            item.className = "cat-item";
+            item.innerHTML = `
+          <div>
+            <strong>${c.nombre}</strong><br>
+            <span style="color:#136b33; font-size:13px;">${formatearMoneda(c.sueldo)}</span>
+          </div>
+          <button class="btn-danger" onclick="eliminarCategoria(${idx})">Eliminar</button>
+        `;
+            lista.appendChild(item);
+          });
+        }
+
+        const tbody = document.getElementById("render-tbody");
+        tbody.innerHTML = "";
+        if (cats.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="2" style="text-align:center; color:#999; padding:16px;">Cargá categorías arriba para armar la tabla</td></tr>';
+        } else {
+          cats.forEach((c) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+          <td><strong>${c.nombre}</strong></td>
+          <td class="monto">${formatearMoneda(c.sueldo)}</td>
+        `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      function descargarImagen() {
+        const cats = bdActividades[actividadActual] || [];
+        if (cats.length === 0) {
+          alert("Cargá al menos una categoría en esta actividad.");
+          return;
+        }
+        const target = document.getElementById("render-area");
+        html2canvas(target, { scale: 3, useCORS: true }).then((canvas) => {
+          const link = document.createElement("a");
+          const nombreAct = actividadActual.replace(/\s+/g, "_");
+          const periodo = document
+            .getElementById("in-periodo")
+            .value.replace(/\s+/g, "_");
+          link.download = `UATRE_${nombreAct}_${periodo}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      }
+
+      window.onload = () => {
+        if (localStorage.getItem("uatre_periodo")) {
+          document.getElementById("in-periodo").value =
+            localStorage.getItem("uatre_periodo");
+        }
+        poblarSelectActividades();
+        mostrarLogo();
+        guardarYRender();
+      };
+    </script>
+  </body>
+</html>
