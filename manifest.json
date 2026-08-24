@@ -1,10 +1,12 @@
 {
+  "id": "/generadortablas/",
   "name": "Escalas UATRE Córdoba",
   "short_name": "Tablas UATRE",
   "description": "Generador de escalas y tablas salariales oficiales UATRE Delegación Córdoba",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/generadortablas/index.html",
+  "scope": "/generadortablas/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#eef2f5",
   "theme_color": "#136b33",
   "icons": [
